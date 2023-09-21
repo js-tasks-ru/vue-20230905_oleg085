@@ -6,7 +6,7 @@ export default defineComponent({
   props: {
     title: {
       type: String,
-      default: ''
+      default: null
     },
     image: {
       type: String,
