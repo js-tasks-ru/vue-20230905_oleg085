@@ -5,7 +5,9 @@
 </template>
 
 <script lang="ts">
-export default {
+import { defineComponent } from 'vue';
+
+export default defineComponent({
   name: 'MeetupCover',
 
   props: {
@@ -17,8 +19,14 @@ export default {
       type: String,
       default: null
     }
+  },
+
+  computed: {
+    styleImage(): string {
+      return this.image ? `url(${this.image})` : 'var(--default-cover)'
+    }
   }
-};
+});
 </script>
 
 <style scoped>
@@ -28,7 +36,7 @@ export default {
   background-position: center;
   /* background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
     url('https://course-vue.javascript.ru/api/images/2'); */
-  background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), v-bind('image ? "url(" + image + ")" : "var(--default-cover)"');
+  background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), v-bind(styleImage);
   display: flex;
   flex-direction: column;
   align-items: center;
