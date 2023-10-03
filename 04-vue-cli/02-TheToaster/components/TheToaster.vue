@@ -1,7 +1,7 @@
 <template>
   <div class="toasts">
-    <UiToast v-for="key in toastMap.keys()" :variant="toastMap.get(key).type" :key="key">
-      {{ toastMap.get(key).message }}
+    <UiToast v-for="toast in toastList" :variant="toast.type" :key="toast.key">
+      {{ toast.message }}
     </UiToast>
   </div>
 </template>
@@ -18,7 +18,8 @@ enum ToastType {
 
 interface ToastProps {
   message: string,
-  type: ToastType
+  type: ToastType,
+  key: number
 }
 
 export default defineComponent({
@@ -28,7 +29,7 @@ export default defineComponent({
 
   data() {
     return {
-      toastMap: new Map() as Map<number, ToastProps>
+      toastList: [] as Array<ToastProps>
     }
   },
 
@@ -38,15 +39,16 @@ export default defineComponent({
     },
 
     error(message: string = '') {
-      this.toastEmitter(message, ToastType.error, 3000)
+      this.toastEmitter(message, ToastType.error)
     },
 
     toastEmitter(message: string, type: ToastType, timeout: number = 5000) {
       const key = Date.now() // can be uuid
-      this.toastMap.set(key, { message, type })
+      this.toastList.push({ message, type, key })
 
       setTimeout(() => {
-        this.toastMap.delete(key)
+        const index = this.toastList.findIndex((toast) => toast.key === key)
+        index !== -1 && this.toastList.splice(index, 1)
       }, timeout)
     }
   }
