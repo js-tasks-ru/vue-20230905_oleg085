@@ -1,31 +1,100 @@
 <template>
-  <div class="dropdown dropdown_opened">
-    <button type="button" class="dropdown__toggle dropdown__toggle_icon">
-      <UiIcon icon="tv" class="dropdown__icon" />
-      <span>Title</span>
+  <div :class="['dropdown', { 'dropdown_opened': isOpened }]">
+    <button type="button" :class="['dropdown__toggle', { 'dropdown__toggle_icon': hasIcon }]" @click="toggleMenu()">
+      <UiIcon v-if="selected && selected.icon" :icon="selected.icon" class="dropdown__icon"/>
+      <span>{{ !!selected ? selected.text : title }}</span>
     </button>
 
-    <div class="dropdown__menu" role="listbox">
-      <button class="dropdown__item dropdown__item_icon" role="option" type="button">
-        <UiIcon icon="tv" class="dropdown__icon" />
-        Option 1
-      </button>
-      <button class="dropdown__item dropdown__item_icon" role="option" type="button">
-        <UiIcon icon="tv" class="dropdown__icon" />
-        Option 2
-      </button>
+    <div v-show="isOpened" class="dropdown__menu" role="listbox">
+      <UiDropdownItem
+        v-for="({ value, text, icon }, index) in options"
+        :class="{'dropdown__item_icon': hasIcon }"
+        :icon="icon"
+        :key="index"
+        @click="closeMenu(); $emit('update:modelValue', value);"
+      >
+        {{ text }}
+      </UiDropdownItem>
     </div>
+
+    <select v-show="false" :value="modelValue" @change="$emit('update:modelValue', $event.target.value)">
+      <option v-for="({ value, text }, index) in options" :value="value" :key="index">
+        {{ text }}
+      </option>
+    </select>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import UiIcon from './UiIcon.vue';
+import type { PropType } from 'vue';
+import { defineComponent } from 'vue';
+import UiDropdownItem from './UiDropdownItem.vue';
 
-export default {
+
+interface Option {
+  value: string
+  text: string
+  icon?: string
+}
+
+
+export default defineComponent({
   name: 'UiDropdown',
 
-  components: { UiIcon },
-};
+  components: { UiDropdownItem, UiIcon },
+
+  props: {
+    options: {
+      type: Array as PropType<Option[]>,
+      default: () => [],
+      required: true
+    },
+    modelValue: {
+      type: String
+    },
+    title: {
+      type: String,
+      default: '',
+      required: true
+    }
+  },
+
+  emits: ['update:modelValue'],
+
+  data() {
+    return {
+      isOpened: false
+    }
+  },
+
+  computed: {
+    hasIcon() {
+      return this.options.some(({ icon }) => !!icon)
+    },
+    selected(): Option | undefined {
+      return this.modelValue ? this.options.find(({ value }: Option) => value === this.modelValue) : undefined
+    }
+  },
+
+  methods: {
+    toggleMenu() {
+      this.isOpened = !this.isOpened
+    },
+
+    closeMenu() {
+      this.isOpened = false
+    }
+  },
+
+  mounted() {
+    // Simple click outside, this event need remove when component destroy
+    document.addEventListener('click', event => {
+      !this.$el.contains(event.target) && this.closeMenu()
+    })
+  }
+
+});
 </script>
 
 <style scoped>
