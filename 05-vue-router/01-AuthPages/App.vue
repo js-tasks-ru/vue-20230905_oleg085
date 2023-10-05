@@ -1,10 +1,10 @@
 <template>
   <div class="wrapper">
-    <MeetupsHeader />
+    <MeetupsHeader/>
     <main class="main">
-      <div>CURRENT PAGE</div>
+      <RouterView />
     </main>
-    <MeetupsFooter />
+    <MeetupsFooter/>
   </div>
 </template>
 
@@ -17,8 +17,8 @@ export default {
 
   components: {
     MeetupsFooter,
-    MeetupsHeader,
-  },
+    MeetupsHeader
+  }
 };
 </script>
 
