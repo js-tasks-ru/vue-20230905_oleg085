@@ -29,16 +29,34 @@ export const router = createRouter({
           path: '',
           alias: 'description',
           name: 'meetup.description',
+          meta: {
+            saveScrollPosition: true
+          },
           props: true,
           component: () => import('../views/PageMeetupDescription.vue'),
         },
         {
           path: 'agenda',
           name: 'meetup.agenda',
+          meta: {
+            saveScrollPosition: true
+          },
           props: true,
           component: () => import('../views/PageMeetupAgenda.vue'),
         },
       ],
     },
   ],
+  scrollBehavior(to, from, savedPosition) {
+    if (to.meta?.saveScrollPosition && from.meta?.saveScrollPosition) {
+      return {}
+    }
+    if (savedPosition) {
+      return savedPosition
+    }
+    if (to.hash) {
+      return { el: to.hash }
+    }
+    return { top: 0, left: 0 }
+  }
 });
