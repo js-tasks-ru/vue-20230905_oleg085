@@ -11,7 +11,7 @@ export default defineComponent({
   name: 'UiLink',
   props: {
     tag: {
-      type: String,
+      type: [String, Object, Function],
       default: 'RouterLink'
     }
   }
