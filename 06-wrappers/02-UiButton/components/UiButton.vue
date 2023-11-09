@@ -1,11 +1,42 @@
 <template>
-  <button class="button button_secondary button_block">BUTTON</button>
+  <component
+    :is="tag"
+    class="button"
+    :class="[`button_${variant}`, { 'button_block': block } ]"
+    :type="buttonType"
+  >
+    <slot/>
+  </component>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
+
+type Variant = 'primary' | 'secondary' | 'danger'
+
+export default defineComponent({
   name: 'UiButton',
-};
+  props: {
+    tag: {
+      type: [String, Object, Function],
+      default: 'button'
+    },
+    variant: {
+      type: String as PropType<Variant>,
+      default: 'secondary'
+    },
+    block: {
+      type: Boolean,
+      default: false
+    }
+  },
+  computed: {
+    buttonType(): string | null {
+      return typeof this.tag === 'string' && this.tag.toLowerCase() === 'button' ? 'button' : null
+    }
+  }
+});
 </script>
 
 <style scoped>

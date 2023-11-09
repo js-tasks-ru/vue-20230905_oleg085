@@ -1,11 +1,21 @@
 <template>
-  <a class="link">Link!</a>
+  <component :is="tag" class="link">
+    <slot>Link!</slot>
+  </component>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({
   name: 'UiLink',
-};
+  props: {
+    tag: {
+      type: [String, Object, Function],
+      default: 'RouterLink'
+    }
+  }
+});
 </script>
 
 <style scoped>
