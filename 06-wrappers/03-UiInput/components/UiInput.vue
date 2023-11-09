@@ -1,21 +1,82 @@
 <template>
-  <div class="input-group input-group_icon input-group_icon-left input-group_icon-right">
-    <div class="input-group__icon">
-      <img class="icon" alt="icon" />
+  <div
+    class="input-group"
+    :class="[
+      { 'input-group_icon ': !!$slots },
+      { 'input-group_icon-left': !!$slots['left-icon'] },
+      { 'input-group_icon-right': !!$slots['right-icon'] }
+      ]">
+
+    <div v-if="!!$slots['left-icon']" class="input-group__icon">
+      <slot name="left-icon"></slot>
     </div>
 
-    <input ref="input" class="form-control form-control_rounded form-control_sm" />
+    <component
+      :is="!multiline ? 'input' : 'textarea'"
+      :value="modelValue"
+      ref="input"
+      class="form-control"
+      :class="[{ 'form-control_rounded': rounded, 'form-control_sm': small }]"
+      @input="onInput"
+      @change="onChange"
+      v-bind="$attrs"/>
 
-    <div class="input-group__icon">
-      <img class="icon" alt="icon" />
+    <div v-if="!!$slots['right-icon']" class="input-group__icon">
+      <slot name="right-icon"></slot>
     </div>
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
+
+type TModifier = {
+  lazy: boolean
+}
+
+export default defineComponent({
   name: 'UiInput',
-};
+  props: {
+    modelValue: String,
+    modelModifiers: {
+      type: Object as PropType<TModifier>,
+      default: () => ({})
+    },
+    small: {
+      type: Boolean,
+      default: false
+    },
+    rounded: {
+      type: Boolean,
+      default: false
+    },
+    multiline: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  emits: ['update:modelValue'],
+
+  inheritAttrs: false,
+
+  methods: {
+    focus() {
+      (this.$refs.input as HTMLInputElement).focus()
+    },
+    onInput(event: Event) {
+      if (!this.$props.modelModifiers.lazy) {
+        this.$emit('update:modelValue', (event.target as HTMLInputElement).value)
+      }
+    },
+    onChange(event: Event) {
+      if (this.$props.modelModifiers.lazy) {
+        this.$emit('update:modelValue', (event.target as HTMLInputElement).value)
+      }
+    }
+  }
+});
 </script>
 
 <style scoped>
