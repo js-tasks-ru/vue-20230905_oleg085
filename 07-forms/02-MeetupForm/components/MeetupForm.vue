@@ -1,44 +1,49 @@
 <template>
-  <form class="meetup-form">
+  <form class="meetup-form" @submit="$emit('submit', klona({ ...meetupLocal, agenda: agendaListLocal }))">
     <div class="meetup-form__content">
       <fieldset class="meetup-form__section">
         <UiFormGroup label="Название">
-          <UiInput name="title" />
+          <UiInput v-model="meetupLocal.title" name="title"/>
         </UiFormGroup>
         <UiFormGroup label="Дата">
-          <UiInputDate type="date" name="date" />
+          <UiInputDate v-model="meetupLocal.date" type="date" name="date"/>
         </UiFormGroup>
         <UiFormGroup label="Место">
-          <UiInput name="place" />
+          <UiInput v-model="meetupLocal.place" name="place"/>
         </UiFormGroup>
         <UiFormGroup label="Описание">
-          <UiInput multiline rows="3" name="description" />
+          <UiInput v-model="meetupLocal.description" multiline rows="3" name="description"/>
         </UiFormGroup>
         <UiFormGroup label="Изображение">
           <!--
                Предлагается сохранять файл для будущей загрузки во временное поле imageToUpload
                и передавать в объекте со всеми данными формы
           -->
-          <ui-image-uploader
+          <UiImageUploader
             name="image"
-            :preview="meetup.image"
-            @select="meetup.imageToUpload = $event"
-            @remove="meetup.imageToUpload = null"
+            :preview="meetupLocal.image"
+            @select="meetupLocal.imageToUpload = $event"
+            @remove="meetupLocal.imageToUpload = null"
           />
         </UiFormGroup>
       </fieldset>
 
       <h3 class="meetup-form__agenda-title">Программа</h3>
-      <!--
-      <meetup-agenda-item-form
-         :key="agendaItem.id"
-         :agenda-item="..."
-         class="meetup-form__agenda-item"
-       />
-       -->
+      <MeetupAgendaItemForm
+        v-for="({ id }, index) in agendaListLocal"
+        :key="id"
+        :agenda-item="agendaListLocal[index]"
+        class="meetup-form__agenda-item"
+        @remove="agendaListLocal.splice(index, 1)"
+        @update:agendaItem="agendaListLocal[index] = $event"
+      />
 
       <div class="meetup-form__append">
-        <button class="meetup-form__append-button" type="button" data-test="addAgendaItem">
+        <button
+          class="meetup-form__append-button"
+          type="button"
+          data-test="addAgendaItem"
+          @click="addNewAgendaItem">
           + Добавить этап программы
         </button>
       </div>
@@ -47,48 +52,80 @@
     <div class="meetup-form__aside">
       <div class="meetup-form__aside-stick">
         <!-- data-test атрибуты используются для поиска нужного элемента в тестах, не удаляйте их -->
-        <ui-button variant="secondary" block class="meetup-form__aside-button" data-test="cancel">Отмена</ui-button>
-        <ui-button variant="primary" block class="meetup-form__aside-button" data-test="submit" type="submit">
-          SUBMIT
-        </ui-button>
+        <UiButton
+          variant="secondary"
+          block
+          class="meetup-form__aside-button"
+          data-test="cancel"
+          @click="$emit('cancel')">
+          Отмена
+        </UiButton>
+        <UiButton
+          variant="primary"
+          block
+          class="meetup-form__aside-button"
+          data-test="submit"
+          type="submit">
+          {{ submitText }}
+        </UiButton>
       </div>
     </div>
   </form>
 </template>
 
-<script>
+<script setup lang="ts">
 import MeetupAgendaItemForm from './MeetupAgendaItemForm.vue';
 import UiButton from './UiButton.vue';
 import UiFormGroup from './UiFormGroup.vue';
 import UiImageUploader from './UiImageUploader.vue';
 import UiInput from './UiInput.vue';
 import UiInputDate from './UiInputDate.vue';
-// import { createAgendaItem } from '../meetupService.js';
+import { createAgendaItem } from '../meetupService.js';
+import { reactive } from "vue";
+import { klona } from "klona";
 
-export default {
-  name: 'MeetupForm',
+interface Meetup {
+  id: number,
+  title: string,
+  description: string,
+  place: string,
+  date: Date,
+  image: string,
+  agenda: Array<AgendaItem>,
+}
 
-  components: {
-    MeetupAgendaItemForm,
-    UiButton,
-    UiFormGroup,
-    UiImageUploader,
-    UiInput,
-    UiInputDate,
-  },
+interface MeetupWithImage extends Meetup {
+  imageToUpload?: string | null,
+}
 
-  props: {
-    meetup: {
-      type: Object,
-      required: true,
-    },
+interface AgendaItem {
+  id: number,
+  startsAt: string,
+  endsAt: string,
+  type: string,
+  title: string,
+  description: string
+}
 
-    submitText: {
-      type: String,
-      default: '',
-    },
-  },
-};
+const props = withDefaults(defineProps<{
+  meetup: Meetup,
+  submitText?: string
+}>(), {
+  submitText: '',
+})
+
+const meetupLocal = reactive<MeetupWithImage>({ ...props.meetup })
+const agendaListLocal = reactive<AgendaItem[]>([...meetupLocal.agenda])
+
+function addNewAgendaItem() {
+  if (agendaListLocal.length) {
+    const lastEndsAt = agendaListLocal[agendaListLocal.length - 1].endsAt
+    agendaListLocal.push({ ...createAgendaItem() as AgendaItem, startsAt: lastEndsAt })
+  } else {
+    agendaListLocal.push({ ...createAgendaItem() as AgendaItem })
+  }
+}
+
 </script>
 
 <style scoped>
